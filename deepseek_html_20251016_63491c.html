@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application de Suivi des Congés - Centre Intermédiaire Ali Trad</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>🏥 Application de Suivi des Congés - Centre Intermédiaire Ali Trad</h1>
+        </div>
+    </header>
+    <div class="container">
+        <!-- Écran de séparation RH/Employés -->
+        <div id="login-selection" class="login-section">
+            <h2>🔐 Connexion au Système</h2>
+            <p style="text-align: center; margin-bottom: 2rem; color: #7f8c8d;">
+                Veuillez choisir votre type de connexion
+            </p>
+            
+            <div class="login-options">
+                <div class="login-option" onclick="showLoginForm('rh')">
+                    <h3>👨‍💼 Espace Responsable RH</h3>
+                    <p>Accès à la gestion complète des congés, du personnel et des rapports</p>
+                    <button style="background: #3498db;">Se connecter en tant que RH</button>
+                </div>
+                
+                <div class="login-option" onclick="showLoginForm('employee')">
+                    <h3>👤 Espace Employé</h3>
+                    <p>Gestion de vos demandes de congé et consultation de vos soldes</p>
+                    <button style="background: #2ecc71;">Se connecter en tant qu'employé</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section de connexion principale (cachée par défaut) -->
+        <div id="main-login" class="login-section" style="display: none;">
+            <h2 id="login-title">🔐 Connexion</h2>
+            <div style="text-align: center; margin-bottom: 1.5rem;">
+                <button class="user-type-btn active" onclick="showLoginForm('rh')">👨‍💼 RH</button>
+                <button class="user-type-btn" onclick="showLoginForm('employee')">👤 Employé</button>
+            </div>
+            
+            <!-- Formulaire de connexion RH -->
+            <div id="rh-login-form">
+                <h3>Connexion Responsable RH</h3>
+                <form id="rh-login">
+                    <div class="form-group">
+                        <label for="rh-username">Nom d'utilisateur</label>
+                        <input type="text" id="rh-username" required value="admin">
+                    </div>
+                    <div class="form-group password-toggle">
+                        <label for="rh-password">Mot de passe</label>
+                        <input type="password" id="rh-password" required value="admin123">
+                        <span class="toggle-icon" onclick="togglePassword('rh-password')">👁️</span>
+                    </div>
+                    <button type="submit" style="width: 100%;">Se connecter</button>
+                </form>
+            </div>
+            
+            <!-- Formulaire de connexion Employé -->
+            <div id="employee-login-form" style="display: none;">
+                <h3>Connexion Employé</h3>
+                <form id="employee-login">
+                    <div class="form-group">
+                        <label for="employee-select">Sélectionnez votre compte</label>
+                        <select id="employee-select" required>
+                            <option value="">Choisissez votre nom</option>
+                        </select>
+                    </div>
+                    <div class="form-group password-toggle">
+                        <label for="employee-password">Mot de passe personnel</label>
+                        <input type="password" id="employee-password" required value="1234">
+                        <span class="toggle-icon" onclick="togglePassword('employee-password')">👁️</span>
+                    </div>
+                    <button type="submit" style="width: 100%;">Se connecter</button>
+                </form>
+            </div>
+            
+            <div style="text-align: center; margin-top: 1rem;">
+                <button onclick="showLoginSelection()" style="background: #6c757d;">← Retour au choix de connexion</button>
+            </div>
+            
+            <div id="login-alert" class="alert alert-danger" style="display: none; margin-top: 1rem;"></div>
+        </div>
+
+        <!-- Interface RH -->
+        <div id="rh-interface" style="display: none;">
+            <div style="background: #e8f5e8; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <strong>👨‍💼 Connecté en tant que :</strong> 
+                    <span id="connected-rh-name">Administrateur RH</span>
+                </div>
+                <button onclick="logout()" style="background: #6c757d; padding: 0.5rem 1rem;">🚪 Se déconnecter</button>
+            </div>
+            
+            <div class="nav-tabs">
+                <button class="nav-tab active" onclick="switchTab('dashboard')">📊 Tableau de Bord</button>
+                <button class="nav-tab" onclick="switchTab('gestion')">⚙️ Gestion des Congés</button>
+                <button class="nav-tab" onclick="switchTab('personnel')">👥 Gestion du Personnel</button>
+                <button class="nav-tab" onclick="switchTab('soldes')">💰 Soldes des Congés</button>
+                <button class="nav-tab" onclick="switchTab('rapports')">📋 Rapports & Impression</button>
+                <button class="nav-tab" onclick="switchTab('securite')">🔐 Sécurité</button>
+            </div>
+            
+            <div id="dashboard" class="tab-content active">
+                <h2>📊 Tableau de Bord</h2>
+                <div class="stats-grid">
+                    <div class="stat-card"><div class="stat-number" id="total-employees">0</div><div>Employés</div></div>
+                    <div class="stat-card"><div class="stat-number" id="pending-requests">0</div><div>Demandes en attente</div></div>
+                    <div class="stat-card"><div class="stat-number" id="approved-requests">0</div><div>Congés approuvés</div></div>
+                    <div class="stat-card"><div class="stat-number" id="rejected-requests">0</div><div>Congés rejetés</div></div>
+                </div>
+            </div>
+            
+            <div id="gestion" class="tab-content">
+                <h2>⚙️ Gestion des Congés</h2>
+                <div class="form-group">
+                    <label for="filter-status">🔍 Filtrer par statut</label>
+                    <select id="filter-status" onchange="filterLeaves()">
+                        <option value="all">Tous les statuts</option>
+                        <option value="pending">En attente</option>
+                        <option value="approved">Approuvé</option>
+                        <option value="rejected">Rejeté</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="filter-type">🔍 Filtrer par type</label>
+                    <select id="filter-type" onchange="filterLeaves()">
+                        <option value="all">Tous les types</option>
+                        <option value="annuel">Congé annuel</option>
+                        <option value="maladie">Congé de maladie</option>
+                        <option value="longue-duree">Congé de longue durée</option>
+                        <option value="maternite">Congé de maternité</option>
+                        <option value="recuperation">Congé de récupération</option>
+                        <option value="radio">Congé de radio</option>
+                        <option value="certificat">Certificat d'accompagnement</option>
+                        <option value="sans-solde">Congé sans solde</option>
+                        <option value="exceptionnel">Congé exceptionnel</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="filter-grade">🔍 Filtrer par grade</label>
+                    <select id="filter-grade" onchange="filterLeaves()">
+                        <option value="all">Tous les grades</option>
+                    </select>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table id="leaves-table">
+                        <thead>
+                            <tr>
+                                <th>Employé</th>
+                                <th>Grade</th>
+                                <th>Type</th>
+                                <th>Période</th>
+                                <th>Jours</th>
+                                <th>Adresse & Téléphone</th>
+                                <th>Statut</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leaves-list">
+                            <tr>
+                                <td colspan="8" style="text-align: center; padding: 2rem;">Aucune demande de congé</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div id="personnel" class="tab-content">
+                <h2>👥 Gestion du Personnel</h2>
+                <button onclick="showAddEmployeeForm()" style="margin-bottom: 1rem;">➕ Ajouter un employé</button>
+                <div style="overflow-x: auto;">
+                    <table id="employees-table">
+                        <thead>
+                            <tr>
+                                <th>Nom</th>
+                                <th>Prénom</th>
+                                <th>Email</th>
+                                <th>Grade</th>
+                                <th>Date d'embauche</th>
+                                <th>Solde Congés</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="employees-list"></tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div id="soldes" class="tab-content">
+                <h2>💰 Soldes des Congés</h2>
+                <div class="form-group">
+                    <label for="filter-solde-grade">🔍 Filtrer par grade</label>
+                    <select id="filter-solde-grade" onchange="updateLeaveBalances()">
+                        <option value="all">Tous les grades</option>
+                    </select>
+                </div>
+                <div id="leave-balances-list">
+                    <p>Chargement des soldes...</p>
+                </div>
+            </div>
+            
+            <div id="rapports" class="tab-content">
+                <h2>📋 Rapports & Impression</h2>
+                <div class="print-section">
+                    <h3>📄 Formulaire Officiel Tunisien</h3>
+                    <div class="form-group">
+                        <label for="tunisian-leave-select">Sélectionner une demande approuvée</label>
+                        <select id="tunisian-leave-select" onchange="updateTunisianForm()">
+                            <option value="">Choisir une demande approuvée</option>
+                        </select>
+                    </div>
+                    <button class="print-btn" onclick="printTunisianForm()">🖨️ Imprimer le formulaire officiel</button>
+                    
+                    <div id="tunisian-form-container" class="tunisian-form" style="display: none;">
+                        <!-- Le contenu sera généré dynamiquement -->
+                    </div>
+                </div>
+                
+                <div class="print-section" style="margin-top: 2rem;">
+                    <h3>📄 Imprimer la liste des congés</h3>
+                    <div class="print-controls">
+                        <div class="form-group" style="flex: 1; min-width: 200px;">
+                            <label for="print-start-date">Date de début</label>
+                            <input type="date" id="print-start-date">
+                        </div>
+                        <div class="form-group" style="flex: 1; min-width: 200px;">
+                            <label for="print-end-date">Date de fin</label>
+                            <input type="date" id="print-end-date">
+                        </div>
+                        <div class="form-group" style="flex: 1; min-width: 200px;">
+                            <label for="print-status">Statut</label>
+                            <select id="print-status">
+                                <option value="all">Tous les statuts</option>
+                                <option value="approved">Approuvé</option>
+                                <option value="pending">En attente</option>
+                                <option value="rejected">Rejeté</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="print-btn" onclick="generatePrintableReport()">🖨️ Générer le rapport</button>
+                    <button class="print-btn" onclick="window.print()" id="print-btn" style="display:none;">🖨️ Imprimer</button>
+                    <div id="print-preview" style="margin-top: 1rem;"></div>
+                </div>
+            </div>
+            
+            <div id="securite" class="tab-content">
+                <h2>🔐 Gestion de la Sécurité</h2>
+                <div class="form-group">
+                    <h3>Mot de passe RH</h3>
+                    <div class="form-group">
+                        <label for="new-rh-password">Nouveau mot de passe RH</label>
+                        <input type="password" id="new-rh-password">
+                    </div>
+                    <div class="form-group">
+                        <label for="confirm-rh-password">Confirmer le mot de passe</label>
+                        <input type="password" id="confirm-rh-password">
+                    </div>
+                    <button onclick="changeRHPassword()">🔄 Changer le mot de passe RH</button>
+                </div>
+                
+                <div class="form-group" style="margin-top: 2rem;">
+                    <h3>Réinitialiser les mots de passe employés</h3>
+                    <div class="form-group">
+                        <label for="reset-employee-select">Sélectionner un employé</label>
+                        <select id="reset-employee-select">
+                            <option value="">Choisir un employé</option>
+                        </select>
+                    </div>
+                    <button onclick="resetEmployeePassword()">🔄 Réinitialiser le mot de passe</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Interface Employé -->
+        <div id="employee-interface" style="display: none;">
+            <div style="background: #e8f5e8; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <strong>👤 Connecté en tant que :</strong> 
+                    <span id="connected-employee-name">Non connecté</span>
+                </div>
+                <button onclick="logout()" style="background: #6c757d; padding: 0.5rem 1rem;">🚪 Se déconnecter</button>
+            </div>
+            
+            <div class="nav-tabs">
+                <button class="nav-tab active" onclick="switchEmployeeTab('mes-demandes')">📋 Mes Demandes</button>
+                <button class="nav-tab" onclick="switchEmployeeTab('nouvelle-demande')">📝 Nouvelle Demande</button>
+                <button class="nav-tab" onclick="switchEmployeeTab('mes-infos')">👤 Mes Informations</button>
+                <button class="nav-tab" onclick="switchEmployeeTab('mon-solde')">💰 Mon Solde</button>
+                <button class="nav-tab" onclick="switchEmployeeTab('mon-compte')">🔐 Mon Compte</button>
+            </div>
+            
+            <div id="mes-demandes" class="tab-content active">
+                <h2>📋 Mes Demandes de Congé</h2>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Période</th>
+                                <th>Jours</th>
+                                <th>Adresse & Téléphone</th>
+                                <th>Motif (Exceptionnel)</th>
+                                <th>Statut</th>
+                                <th>Date de demande</th>
+                            </tr>
+                        </thead>
+                        <tbody id="my-leaves-list">
+                            <tr>
+                                <td colspan="7" style="text-align: center; padding: 2rem;">Aucune demande de congé</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Section pour la feuille de congé officielle -->
+                <div class="print-section">
+                    <h3>📄 Formulaire Officiel Tunisien</h3>
+                    <div class="form-group">
+                        <label for="official-leave-select">Sélectionner une demande approuvée</label>
+                        <select id="official-leave-select" onchange="updateOfficialForm()">
+                            <option value="">Choisir une demande approuvée</option>
+                        </select>
+                    </div>
+                    <button class="print-btn" onclick="printOfficialForm()">🖨️ Imprimer le formulaire officiel</button>
+                    
+                    <div id="official-form-container" class="tunisian-form" style="display: none;">
+                        <!-- Le contenu sera généré dynamiquement -->
+                    </div>
+                </div>
+            </div>
+            
+            <div id="nouvelle-demande" class="tab-content">
+                <h2>📝 Nouvelle Demande de Congé</h2>
+                <div id="leave-balance-warning" style="display: none;"></div>
+                <div id="certificat-alert" class="certificat-alert" style="display: none;">
+                    <strong>📋 Attention : Certificat médical requis</strong>
+                    <p>Vous avez dépassé 30 jours de congé maladie cumulés cette année. Un certificat médical confidentiel est obligatoire (à fournir séparément).</p>
+                </div>
+                <div id="sick-leave-warning" class="sick-leave-alert" style="display: none;">
+                    <strong>⚠️ Alerte : Congés maladie</strong>
+                    <p>Vous avez dépassé 30 jours de congé maladie cette année. Veuillez fournir un certificat médical.</p>
+                </div>
+                <form id="employee-leave-request-form">
+                    <div class="form-group">
+                        <label for="employee-leave-type">📋 Type de congé</label>
+                        <select id="employee-leave-type" required onchange="updateLeaveTypeOptions()">
+                            <option value="">Sélectionner le type</option>
+                            <option value="annuel">Congé annuel</option>
+                            <option value="maladie">Congé de maladie</option>
+                            <option value="longue-duree">Congé de longue durée</option>
+                            <option value="maternite">Congé de maternité</option>
+                            <option value="recuperation">Congé de récupération</option>
+                            <option value="radio" id="radio-option" style="display: none;">Congé de radio</option>
+                            <option value="certificat">Certificat d'accompagnement</option>
+                            <option value="sans-solde">Congé sans solde</option>
+                            <option value="exceptionnel">Congé exceptionnel</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Champ motif pour congé exceptionnel -->
+                    <div id="exceptionnel-motif-group" class="form-group" style="display: none;">
+                        <label for="exceptionnel-motif">📝 Motif du congé exceptionnel</label>
+                        <textarea id="exceptionnel-motif" placeholder="Veuillez préciser le motif de votre congé exceptionnel..." rows="3" required></textarea>
+                    </div>
+                    
+                    <div class="form-group"><label for="employee-start-date">📅 Date de début</label><input type="date" id="employee-start-date" required onchange="calculateDays()"></div>
+                    <div class="form-group"><label for="employee-end-date">📅 Date de fin</label><input type="date" id="employee-end-date" required onchange="calculateDays()"></div>
+                    <div class="form-group">
+                        <label for="employee-days">📅 Nombre de jours</label>
+                        <input type="number" id="employee-days" readonly style="background: #f8f9fa;">
+                    </div>
+                    <div class="form-group">
+                        <label for="employee-address">🏠 Adresse pendant le congé</label>
+                        <input type="text" id="employee-address" placeholder="Votre adresse complète pendant le congé" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="employee-phone">📞 Téléphone joignable</label>
+                        <input type="tel" id="employee-phone" placeholder="Votre numéro de téléphone" required>
+                    </div>
+                    <button type="submit">✅ Soumettre la demande</button>
+                </form>
+            </div>
+            
+            <div id="mes-infos" class="tab-content">
+                <h2>👤 Mes Informations</h2>
+                <div id="employee-info" style="background: #f8f9fa; padding: 1rem; border-radius: 8px;">
+                    <p><strong>Nom:</strong> <span id="info-name">-</span></p>
+                    <p><strong>Email:</strong> <span id="info-email">-</span></p>
+                    <p><strong>Grade:</strong> <span id="info-grade">-</span></p>
+                    <p><strong>Date d'embauche:</strong> <span id="info-hire-date">-</span></p>
+                    <p><strong>Jours de congé annuel cumulés:</strong> <span id="info-acquired-leave">-</span></p>
+                    <p><strong>Jours de congé annuel pris:</strong> <span id="info-taken-leave">-</span></p>
+                    <p><strong>Solde congé annuel restant:</strong> <span id="info-remaining-leave">-</span></p>
+                    <p><strong>Jours de congé maladie pris cette année:</strong> <span id="info-sick-taken">-</span></p>
+                    <div id="radio-leave-info" style="display: none;">
+                        <p><strong>Congés radio acquis:</strong> <span id="info-radio-acquired">-</span></p>
+                        <p><strong>Congés radio pris:</strong> <span id="info-radio-taken">-</span></p>
+                        <p><strong>Solde congés radio restant:</strong> <span id="info-radio-remaining">-</span></p>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="mon-solde" class="tab-content">
+                <h2>💰 Mon Solde de Congés</h2>
+                <div class="balance-grid" id="employee-balance-grid">
+                    <div class="balance-item">
+                        <div>Congés Annuels</div>
+                        <div class="balance-number balance-positive">0</div>
+                        <div style="font-size: 0.8rem;">sur 0 jours</div>
+                    </div>
+                    <div class="balance-item">
+                        <div>Congés Maladie</div>
+                        <div class="balance-number balance-positive">0</div>
+                        <div style="font-size: 0.8rem;">sur 0 jours</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="mon-compte" class="tab-content">
+                <h2>🔐 Mon Compte</h2>
+                <div class="form-group">
+                    <h3>Changer mon mot de passe</h3>
+                    <div class="form-group">
+                        <label for="current-password">Mot de passe actuel</label>
+                        <input type="password" id="current-password">
+                    </div>
+                    <div class="form-group">
+                        <label for="new-password">Nouveau mot de passe</label>
+                        <input type="password" id="new-password">
+                    </div>
+                    <div class="form-group">
+                        <label for="confirm-password">Confirmer le nouveau mot de passe</label>
+                        <input type="password" id="confirm-password">
+                    </div>
+                    <button onclick="changeEmployeePassword()">🔄 Changer mon mot de passe</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal pour ajouter un employé -->
+    <div id="employee-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>👤 Ajouter un employé</h3>
+                <button class="close-btn" onclick="hideAddEmployeeForm()">&times;</button>
+            </div>
+            <form id="employee-form">
+                <div class="form-group"><label for="new-firstname">Prénom</label><input type="text" id="new-firstname" required></div>
+                <div class="form-group"><label for="new-lastname">Nom</label><input type="text" id="new-lastname" required></div>
+                <div class="form-group"><label for="new-email">Email</label><input type="email" id="new-email" required></div>
+                <div class="form-group"><label for="new-grade">Grade</label><select id="new-grade" required><option value="">Sélectionner un grade</option></select></div>
+                <div class="form-group"><label for="new-hire-date">Date d'embauche</label><input type="date" id="new-hire-date" required></div>
+                <div class="form-group">
+                    <label for="new-address">Adresse</label>
+                    <input type="text" id="new-address" placeholder="Adresse complète" required>
+                </div>
+                <div class="form-group">
+                    <label for="new-phone">Téléphone</label>
+                    <input type="tel" id="new-phone" placeholder="Numéro de téléphone" required>
+                </div>
+                <div class="form-group">
+                    <label for="new-initial-balance">Solde initial de congés annuels (jours)</label>
+                    <input type="number" id="new-initial-balance" value="30" min="0" max="60" required>
+                </div>
+                <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                    <button type="submit">✅ Ajouter</button>
+                    <button type="button" onclick="hideAddEmployeeForm()" style="background: #6c757d;">❌ Annuler</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal pour modifier le solde -->
+    <div id="balance-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>💰 Modifier le solde de congés</h3>
+                <button class="close-btn" onclick="hideBalanceModal()">&times;</button>
+            </div>
+            <div id="balance-modal-content">
+                <!-- Le contenu sera généré dynamiquement -->
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
